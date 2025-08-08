@@ -1,0 +1,14 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+    <h2 id=deck-list-title>Deck List:</h2>
+    <ul id='decks'>
+        {% for deck in decks %}
+        <li>
+            <a href="{{ url_for('display_deck', deckname=deck) }}">{{ deck | capitalize }}</a>
+            <div class=actions>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

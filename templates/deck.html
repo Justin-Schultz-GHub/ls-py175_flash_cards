@@ -1,0 +1,13 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+    <h2 id=deck-list-title>{{ deck_title | title }} Card List:</h2>
+    <ul id='card-list'>
+        {% for card in deck %}
+            <li class="card">
+                <div class="card-front">{{ card.front | capitalize }}</div>
+                <div class="card-back">{{ card.back | capitalize }}</div>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}
