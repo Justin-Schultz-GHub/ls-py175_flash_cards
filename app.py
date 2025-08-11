@@ -1,4 +1,5 @@
 import os
+import re
 from flask import (
                     flash,
                     Flask,
@@ -9,6 +10,7 @@ from flask import (
                     session,
                     url_for,
                     )
+import string
 import yaml
 
 
@@ -20,11 +22,39 @@ def get_data_dir():
     subdir = 'tests/data' if app.config['TESTING'] else 'flashcards/data'
     return os.path.join(os.path.dirname(__file__), subdir)
 
+def deck_exists(path):
+    return os.path.exists(path)
+
+def get_deck_path(data_dir, deckname):
+    return os.path.join(data_dir, deckname)
+
+def generate_next_deckname(data_dir):
+    existing = os.listdir(data_dir)
+    pattern = re.compile(r'^deck(\d+)$')
+    numbers = []
+
+    for name in existing:
+        match = pattern.match(name)
+        if match:
+            numbers.append(int(match.group(1)))
+
+    next_number = max(numbers) + 1 if numbers else 1
+    return f'deck{next_number}'
+
 # Route hooks
 @app.route('/')
 def index():
     data_dir = get_data_dir()
-    decks = [os.path.basename(path) for path in os.listdir(data_dir)]
+    folders = [os.path.basename(path) for path in os.listdir(data_dir)]
+    decks = []
+
+    for folder in folders:
+        yaml_path = os.path.join(data_dir, folder, 'cards.yml')
+        with open(yaml_path, 'r', encoding='utf-8') as file:
+            deck_data = yaml.safe_load(file)
+
+        deck_name = deck_data.get('name', folder)
+        decks.append({'folder': folder, 'name': deck_name})
 
     return render_template('flashcards.html', decks=decks)
 
@@ -40,7 +70,36 @@ def display_deck(deckname):
     cards = deck_data.get('cards', [])
     deck_title = deck_data.get('name', deckname)
 
-    return render_template('deck.html', deck=cards, deck_title=deck_title)
+    return render_template('deck.html', cards=cards, deck_title=deck_title)
+
+@app.route('/new')
+def new_deck():
+    return render_template('new_deck.html')
+
+@app.route('/new/create', methods=['POST'])
+def create_deck():
+    data_dir = get_data_dir()
+    deckname = request.form['deckname']
+
+    if not deckname:
+        flash('Deck name cannot be empty.', 'error')
+        return render_template('new_deck.html')
+
+    if deck_exists(get_deck_path(data_dir, deckname)):
+        flash('A deck with this name already exists.', 'error')
+        return render_template('new_deck.html', deckname=request.form['deckname']), 422
+
+    deck_folder_name = generate_next_deckname(data_dir)
+    deck_path = get_deck_path(data_dir, deck_folder_name)
+    os.makedirs(deck_path, exist_ok=False)
+
+    yaml_path = os.path.join(deck_path, 'cards.yml')
+    with open(yaml_path, 'w', encoding='utf-8') as file:
+        yaml.dump({'name': deckname}, file, allow_unicode=True, default_flow_style=False)
+        yaml.dump({'cards': []}, file, allow_unicode=True, default_flow_style=False)
+
+    flash(f'Successfully created {deckname}.', 'success')
+    return redirect(url_for('index'))
 
 if __name__ == "__main__":
     app.run(debug=True, port=8080)
