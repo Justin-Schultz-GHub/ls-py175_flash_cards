@@ -6,6 +6,12 @@
         {% for deck in decks if decks %}
             <li>
                 <a href="{{ url_for('display_deck', deckname=deck.folder) }}">{{ deck.name }}</a>
+                <div class=actions>
+                    <a class="edit" href="">Edit Deck</a>
+                    <form class="delete" action="" method="post">
+                        <button type="submit" class="delete">Delete Deck</button>
+                    </form>
+                </div>
             </li>
         {% endfor %}
     </ul>

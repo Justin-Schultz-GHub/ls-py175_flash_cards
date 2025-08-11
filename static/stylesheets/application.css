@@ -1,5 +1,6 @@
 body {
   padding: 1em;
+  font-family: sans-serif;
 }
 
 header {
@@ -85,4 +86,79 @@ input[type="submit"] {
 .flash.success {
   color: #33cc99;
   background: #CBF2E5;
+}
+
+#decks {
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+#decks li {
+  position: relative;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  background: #e0e0e0;
+  list-style: none;
+  flex: 0 1 auto;
+  white-space: nowrap;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-left: 24px;
+}
+
+#decks li a {
+  color: #000;
+  display: block;
+  padding: 18px clamp(10px, 5vw, 25px) 18px clamp(2px, 5vw, 57px);
+  text-decoration: none;
+  font-size: clamp(6px, 4vw, 40px);
+  font-weight: bold;
+  width: max-content;
+  max-width: 100%;
+}
+
+#decks li > a:first-child {
+  flex-grow: 1;
+  overflow-x: auto;
+  background-color: #c0c0c0;
+  border-radius: 0.25em;
+}
+
+.edit::before {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+  background: url('/static/images/icon_edit.png') no-repeat center center;
+  background-size: contain;
+  vertical-align: middle;
+}
+
+#decks li form.delete button.delete::before {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+  background: url('/static/images/icon_delete.png') no-repeat center center;
+  background-size: contain;
+  vertical-align: middle;
+}
+
+#decks li a.edit,
+#decks li form.delete button.delete {
+  color: #000;
+  background: none;
+  border: none;
+  padding: 18px clamp(10px, 5vw, 25px) 18px clamp(2px, 5vw, 57px);
+  font-size: clamp(6px, 4vw, 40px);
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  vertical-align: middle;
 }
