@@ -85,10 +85,6 @@ def create_deck():
         flash('Deck name cannot be empty.', 'error')
         return render_template('new_deck.html')
 
-    if deck_exists(get_deck_path(data_dir, deckname)):
-        flash('A deck with this name already exists.', 'error')
-        return render_template('new_deck.html', deckname=request.form['deckname']), 422
-
     deck_folder_name = generate_next_deckname(data_dir)
     deck_path = get_deck_path(data_dir, deck_folder_name)
     os.makedirs(deck_path, exist_ok=False)
@@ -121,7 +117,13 @@ def save_deck(deck):
     with open(yaml_path, 'r', encoding='utf-8') as file:
         deck_data = yaml.safe_load(file)
 
-    deck_data['name'] = request.form['deckname']
+    new_deck_name = request.form['deckname']
+
+    if not new_deck_name:
+        flash('Deck name cannot be empty.', 'error')
+        return render_template('rename_deck.html', deck=deck_data, deck_folder=deck)
+
+    deck_data['name'] = new_deck_name
 
     with open(yaml_path, 'w', encoding='utf-8') as file:
         yaml.dump(deck_data, file, allow_unicode=True, default_flow_style=False)
