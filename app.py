@@ -25,8 +25,8 @@ def get_data_dir():
 def deck_exists(path):
     return os.path.exists(path)
 
-def get_deck_path(data_dir, deckname):
-    return os.path.join(data_dir, deckname)
+def get_deck_path(data_dir, folder_name):
+    return os.path.join(data_dir, folder_name)
 
 def generate_next_folder_name(data_dir):
     existing = os.listdir(data_dir)
@@ -83,7 +83,7 @@ def create_deck():
 
     if not deckname:
         flash('Deck name cannot be empty.', 'error')
-        return render_template('new_deck.html')
+        return redirect(url_for('new_deck'))
 
     deck_folder = generate_next_folder_name(data_dir)
     deck_path = get_deck_path(data_dir, deck_folder)
