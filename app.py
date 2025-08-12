@@ -89,10 +89,14 @@ def create_deck():
     deck_path = get_deck_path(data_dir, deck_folder)
     os.makedirs(deck_path, exist_ok=False)
 
+    deck_data = {
+            'name': deckname,
+            'cards': []
+        }
+
     yaml_path = os.path.join(deck_path, 'cards.yml')
     with open(yaml_path, 'w', encoding='utf-8') as file:
-        yaml.dump({'name': deckname}, file, allow_unicode=True, default_flow_style=False)
-        yaml.dump({'cards': []}, file, allow_unicode=True, default_flow_style=False)
+        yaml.dump(deck_data, file, allow_unicode=True, default_flow_style=False, sort_keys=False)
 
     flash(f'Successfully created {deckname}.', 'success')
     return redirect(url_for('index'))
