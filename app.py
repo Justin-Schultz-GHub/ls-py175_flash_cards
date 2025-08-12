@@ -28,7 +28,7 @@ def deck_exists(path):
 def get_deck_path(data_dir, deckname):
     return os.path.join(data_dir, deckname)
 
-def generate_next_deckname(data_dir):
+def generate_next_folder_name(data_dir):
     existing = os.listdir(data_dir)
     pattern = re.compile(r'^deck(\d+)$')
     numbers = []
@@ -58,17 +58,17 @@ def index():
 
     return render_template('flashcards.html', decks=decks)
 
-@app.route('/deck/<deckname>')
-def display_deck(deckname):
+@app.route('/deck/<deck_folder>')
+def display_deck(deck_folder):
     data_dir = get_data_dir()
-    deck_dir = os.path.join(data_dir, deckname)
+    deck_dir = os.path.join(data_dir, deck_folder)
     deck_file = os.path.join(deck_dir, 'cards.yml')
 
     with open(deck_file, 'r', encoding='utf-8') as f:
         deck_data = yaml.safe_load(f)
 
     cards = deck_data.get('cards', [])
-    deck_title = deck_data.get('name', deckname)
+    deck_title = deck_data.get('name', deck_folder)
 
     return render_template('deck.html', cards=cards, deck_title=deck_title)
 
@@ -85,8 +85,8 @@ def create_deck():
         flash('Deck name cannot be empty.', 'error')
         return render_template('new_deck.html')
 
-    deck_folder_name = generate_next_deckname(data_dir)
-    deck_path = get_deck_path(data_dir, deck_folder_name)
+    deck_folder = generate_next_folder_name(data_dir)
+    deck_path = get_deck_path(data_dir, deck_folder)
     os.makedirs(deck_path, exist_ok=False)
 
     yaml_path = os.path.join(deck_path, 'cards.yml')
