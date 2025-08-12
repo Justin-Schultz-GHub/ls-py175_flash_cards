@@ -101,5 +101,33 @@ def create_deck():
     flash(f'Successfully created {deckname}.', 'success')
     return redirect(url_for('index'))
 
+@app.route('/edit/<deck>/edit')
+def edit_deck(deck):
+    data_dir = get_data_dir()
+    deck_path = get_deck_path(data_dir, deck)
+    yaml_path = os.path.join(deck_path, 'cards.yml')
+
+    with open(yaml_path, 'r', encoding='utf-8') as file:
+        deck_data = yaml.safe_load(file)
+
+    return render_template('edit_deck.html', deck=deck_data, deck_folder=deck)
+
+@app.route('/decks/<deck>', methods=['POST'])
+def save_deck(deck):
+    data_dir = get_data_dir()
+    deck_path = get_deck_path(data_dir, deck)
+    yaml_path = os.path.join(deck_path, 'cards.yml')
+
+    with open(yaml_path, 'r', encoding='utf-8') as file:
+        deck_data = yaml.safe_load(file)
+
+    deck_data['name'] = request.form['deckname']
+
+    with open(yaml_path, 'w', encoding='utf-8') as file:
+        yaml.dump(deck_data, file, allow_unicode=True, default_flow_style=False)
+
+    flash(f'Deck successfully renamed.', 'success')
+    return redirect(url_for('index'))
+
 if __name__ == "__main__":
     app.run(debug=True, port=8080)
