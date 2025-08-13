@@ -8,7 +8,7 @@
                 <a href="{{ url_for('display_deck', deck_folder=deck.folder) }}">{{ deck.name }}</a>
                 <div class=actions>
                     <a class="edit" href="{{ url_for('rename_deck', deck=deck.folder) }}">Rename Deck</a>
-                    <form class="delete" action="" method="post">
+                    <form class="delete" action="{{ url_for('delete_deck', deck=deck.folder) }}" method="post">
                         <button type="submit" class="delete">Delete Deck</button>
                     </form>
                 </div>

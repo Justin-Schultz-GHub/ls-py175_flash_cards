@@ -11,8 +11,8 @@ from flask import (
                     url_for,
                     )
 import string
+import shutil
 import yaml
-
 
 app = Flask(__name__)
 app.secret_key='secret1'
@@ -45,7 +45,7 @@ def generate_next_folder_name(data_dir):
 @app.route('/')
 def index():
     data_dir = get_data_dir()
-    folders = [os.path.basename(path) for path in os.listdir(data_dir)]
+    folders = os.listdir(data_dir)
     decks = []
 
     for folder in folders:
@@ -130,9 +130,24 @@ def save_deck(deck):
     deck_data['name'] = new_deck_name
 
     with open(yaml_path, 'w', encoding='utf-8') as file:
-        yaml.dump(deck_data, file, allow_unicode=True, default_flow_style=False)
+        yaml.dump(deck_data, file, allow_unicode=True, default_flow_style=False, sort_keys=False)
 
     flash(f'Deck successfully renamed.', 'success')
+    return redirect(url_for('index'))
+
+@app.route('/decks/<deck>/delete', methods=['POST'])
+def delete_deck(deck):
+    data_dir = get_data_dir()
+    folders = os.listdir(data_dir)
+
+    if deck in folders:
+        deck_path = get_deck_path(data_dir, deck)
+        shutil.rmtree(deck_path, ignore_errors=True)
+
+        flash('Deck successfully deleted.', 'success')
+        return redirect(url_for('index'))
+
+    flash('Failed to delete deck.', 'error')
     return redirect(url_for('index'))
 
 if __name__ == "__main__":

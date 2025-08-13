@@ -93,5 +93,34 @@ class AppTest(unittest.TestCase):
         self.assertIn('Test Deck 45', data)
         self.assertNotIn('Test Deck 1', data)
 
+    def test_delete_deck(self):
+        deck = 'deck3'
+        response = self.client.post(f'/decks/{deck}/delete',
+                                    follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+        data = response.get_data(as_text=True)
+        self.assertIn('Deck successfully deleted.', data)
+        self.assertNotIn('Test Deck 3', data)
+
+    def test_delete_non_existent_deck(self):
+        deck = 'deck4'
+        response = self.client.post(f'/decks/{deck}/delete',
+                                    follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+        data = response.get_data(as_text=True)
+        self.assertIn('Failed to delete deck.', data)
+        self.assertIn('Test Deck 1', data)
+        self.assertIn('Test Deck 2', data)
+        self.assertIn('Test Deck 3', data)
+
+    def test_delete_deck_get_request(self):
+        deck = 'deck3'
+        response = self.client.get(f'/decks/{deck}/delete',
+                                    follow_redirects=True)
+        self.assertEqual(response.status_code, 405)
+        data_dir = get_data_dir()
+        folders = os.listdir(data_dir)
+        self.assertIn(deck, folders)
+
     def tearDown(self):
         shutil.rmtree(self.data_path, ignore_errors=True)
