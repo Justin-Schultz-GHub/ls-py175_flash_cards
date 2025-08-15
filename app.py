@@ -112,10 +112,10 @@ def rename_deck(deck_folder):
 
     return render_template('rename_deck.html', deck=deck_data, deck_folder=deck_folder)
 
-@app.route('/decks/<deck>', methods=['POST'])
-def save_deck(deck):
+@app.route('/decks/<deck_folder>', methods=['POST'])
+def save_deck(deck_folder):
     data_dir = get_data_dir()
-    deck_path = get_deck_path(data_dir, deck)
+    deck_path = get_deck_path(data_dir, deck_folder)
     yaml_path = os.path.join(deck_path, 'cards.yml')
 
     with open(yaml_path, 'r', encoding='utf-8') as file:
@@ -125,7 +125,7 @@ def save_deck(deck):
 
     if not new_deck_name:
         flash('Deck name cannot be empty.', 'error')
-        return render_template('rename_deck.html', deck=deck_data, deck_folder=deck)
+        return redirect(url_for('rename_deck', deck_folder=deck_folder))
 
     deck_data['name'] = new_deck_name
 
