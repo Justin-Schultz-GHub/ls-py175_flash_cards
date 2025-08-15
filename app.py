@@ -70,7 +70,7 @@ def display_deck(deck_folder):
     cards = deck_data.get('cards', [])
     deck_title = deck_data.get('name', deck_folder)
 
-    return render_template('deck.html', cards=cards, deck_title=deck_title)
+    return render_template('deck.html', cards=cards, deck_title=deck_title, deck_folder=deck_folder)
 
 @app.route('/new')
 def new_deck():
@@ -101,16 +101,16 @@ def create_deck():
     flash(f'Successfully created {deckname}.', 'success')
     return redirect(url_for('index'))
 
-@app.route('/decks/<deck>/rename')
-def rename_deck(deck):
+@app.route('/decks/<deck_folder>/rename')
+def rename_deck(deck_folder):
     data_dir = get_data_dir()
-    deck_path = get_deck_path(data_dir, deck)
+    deck_path = get_deck_path(data_dir, deck_folder)
     yaml_path = os.path.join(deck_path, 'cards.yml')
 
     with open(yaml_path, 'r', encoding='utf-8') as file:
         deck_data = yaml.safe_load(file)
 
-    return render_template('rename_deck.html', deck=deck_data, deck_folder=deck)
+    return render_template('rename_deck.html', deck=deck_data, deck_folder=deck_folder)
 
 @app.route('/decks/<deck>', methods=['POST'])
 def save_deck(deck):
@@ -135,13 +135,13 @@ def save_deck(deck):
     flash(f'Deck successfully renamed.', 'success')
     return redirect(url_for('index'))
 
-@app.route('/decks/<deck>/delete', methods=['POST'])
-def delete_deck(deck):
+@app.route('/decks/<deck_folder>/delete', methods=['POST'])
+def delete_deck(deck_folder):
     data_dir = get_data_dir()
     folders = os.listdir(data_dir)
 
-    if deck in folders:
-        deck_path = get_deck_path(data_dir, deck)
+    if deck_folder in folders:
+        deck_path = get_deck_path(data_dir, deck_folder)
         shutil.rmtree(deck_path, ignore_errors=True)
 
         flash('Deck successfully deleted.', 'success')
@@ -149,6 +149,35 @@ def delete_deck(deck):
 
     flash('Failed to delete deck.', 'error')
     return redirect(url_for('index'))
+
+@app.route('/decks/<deck_folder>/new_card')
+def new_card(deck_folder):
+    return render_template('create_flashcard.html', deck_folder=deck_folder)
+
+@app.route('/decks/<deck_folder>/new_card/create', methods=['POST'])
+def create_card(deck_folder):
+    data_dir = get_data_dir()
+    deck_path = get_deck_path(data_dir, deck_folder)
+    yaml_path = os.path.join(deck_path, 'cards.yml')
+
+    with open(yaml_path, 'r', encoding='utf-8') as file:
+        deck_data = yaml.safe_load(file)
+
+    card_front = request.form['front'].strip()
+    card_back = request.form['back'].strip()
+
+    print(f'{card_front} {card_back}')
+
+    if not card_front or not card_back:
+        flash('Flashcards must have a front and back.', 'error')
+        return redirect(url_for('new_card', deck_folder=deck_folder))
+
+    deck_data['cards'].append({'front': card_front, 'back': card_back})
+    with open(yaml_path, 'w', encoding='utf-8') as file:
+        yaml.dump(deck_data, file, allow_unicode=True, default_flow_style=False, sort_keys=False)
+
+    flash('Successfully created new card', 'success')
+    return redirect(url_for('display_deck', deck_folder=deck_folder))
 
 if __name__ == "__main__":
     app.run(debug=True, port=8080)

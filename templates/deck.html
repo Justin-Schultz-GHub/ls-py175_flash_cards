@@ -1,6 +1,7 @@
 {% extends 'layout.html' %}
 
 {% block content %}
+    <a href="{{ url_for('new_card', deck_folder=deck_folder) }}" class="button">New Card</a>
     <h2 id=deck-list-title>{{ deck_title | title }} Card List:</h2>
     <ul id='card-list'>
         {% for card in cards %}
