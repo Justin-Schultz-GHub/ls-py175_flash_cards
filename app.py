@@ -166,8 +166,6 @@ def create_card(deck_folder):
     card_front = request.form['front'].strip()
     card_back = request.form['back'].strip()
 
-    print(f'{card_front} {card_back}')
-
     if not card_front or not card_back:
         flash('Flashcards must have a front and back.', 'error')
         return redirect(url_for('new_card', deck_folder=deck_folder))
