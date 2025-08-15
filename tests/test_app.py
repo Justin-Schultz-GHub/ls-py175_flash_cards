@@ -93,6 +93,31 @@ class AppTest(unittest.TestCase):
         self.assertIn('Test Deck 45', data)
         self.assertNotIn('Test Deck 1', data)
 
+    def test_rename_deck_empty_name(self):
+        deckname = ''
+        deck_folder = 'deck3'
+        data_dir = get_data_dir()
+        deck_path = get_deck_path(data_dir, deck_folder)
+        yaml_path = os.path.join(deck_path, 'cards.yml')
+
+        with open(yaml_path, 'r', encoding='utf-8') as file:
+            original_deck_data = yaml.safe_load(file)
+
+        response = self.client.post(f'/decks/{deck_folder}',
+                                    data={
+                                        'deckname': deckname,
+                                    },
+                                    follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+        data = response.get_data(as_text=True)
+        self.assertIn(f"Renaming {original_deck_data['name']}:", data)
+        self.assertIn('Deck name cannot be empty.', data)
+
+        with open(yaml_path, 'r', encoding='utf-8') as file:
+            new_deck_data = yaml.safe_load(file)
+
+        self.assertEqual(original_deck_data, new_deck_data)
+
     def test_delete_deck(self):
         deck = 'deck3'
         response = self.client.post(f'/decks/{deck}/delete',
