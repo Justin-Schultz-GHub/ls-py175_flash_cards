@@ -103,8 +103,8 @@ class AppTest(unittest.TestCase):
         self.assertNotIn('Test Deck 3', data)
 
     def test_delete_non_existent_deck(self):
-        deck = 'deck4'
-        response = self.client.post(f'/decks/{deck}/delete',
+        deck_folder = 'deck4'
+        response = self.client.post(f'/decks/{deck_folder}/delete',
                                     follow_redirects=True)
         self.assertEqual(response.status_code, 200)
         data = response.get_data(as_text=True)
@@ -114,13 +114,63 @@ class AppTest(unittest.TestCase):
         self.assertIn('Test Deck 3', data)
 
     def test_delete_deck_get_request(self):
-        deck = 'deck3'
-        response = self.client.get(f'/decks/{deck}/delete',
+        deck_folder = 'deck3'
+        response = self.client.get(f'/decks/{deck_folder}/delete',
                                     follow_redirects=True)
         self.assertEqual(response.status_code, 405)
         data_dir = get_data_dir()
         folders = os.listdir(data_dir)
-        self.assertIn(deck, folders)
+        self.assertIn(deck_folder, folders)
+
+    def test_display_new_card_page(self):
+        deck_folder = 'deck3'
+        response = self.client.get(f'/decks/{deck_folder}/new_card')
+        self.assertEqual(response.status_code, 200)
+        data = response.get_data(as_text=True)
+        self.assertIn('Create a New Flashcard', data)
+
+    def test_create_card(self):
+        deck_folder = 'deck3'
+        response = self.client.post(f'/decks/{deck_folder}/new_card/create',
+                                    data={
+                                        'front': 'Test1',
+                                        'back': 'Test2'
+                                    },
+                                    follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+        data = response.get_data(as_text=True)
+        self.assertIn('Successfully created new card.', data)
+        self.assertIn('Test1', data)
+        self.assertIn('Test2', data)
+
+    def test_create_card_empty_inputs(self):
+        deck_folder = 'deck3'
+        data_dir = get_data_dir()
+        deck_path = get_deck_path(data_dir, deck_folder)
+        yaml_path = os.path.join(deck_path, 'cards.yml')
+
+        with open(yaml_path, 'r', encoding='utf-8') as file:
+            original_deck_data = yaml.safe_load(file)
+
+        data_sets = [
+                        {'front': 'Test1', 'back': ''},
+                        {'front': '', 'back': 'Test2'},
+                        {'front': '', 'back': ''}
+                    ]
+
+        for data_set in data_sets:
+            response = self.client.post(f'/decks/{deck_folder}/new_card/create',
+                                        data=data_set,
+                                        follow_redirects=True)
+            self.assertEqual(response.status_code, 200)
+            data = response.get_data(as_text=True)
+            self.assertIn('Create a New Flashcard:', data)
+            self.assertIn('Flashcards must have a front and back.', data)
+
+        with open(yaml_path, 'r', encoding='utf-8') as file:
+            new_deck_data = yaml.safe_load(file)
+
+        self.assertEqual(original_deck_data, new_deck_data)
 
     def tearDown(self):
         shutil.rmtree(self.data_path, ignore_errors=True)

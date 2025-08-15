@@ -174,7 +174,7 @@ def create_card(deck_folder):
     with open(yaml_path, 'w', encoding='utf-8') as file:
         yaml.dump(deck_data, file, allow_unicode=True, default_flow_style=False, sort_keys=False)
 
-    flash('Successfully created new card', 'success')
+    flash('Successfully created new card.', 'success')
     return redirect(url_for('display_deck', deck_folder=deck_folder))
 
 if __name__ == "__main__":
