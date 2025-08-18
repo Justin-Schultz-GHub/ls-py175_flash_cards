@@ -13,6 +13,7 @@ from flask import (
 import string
 import shutil
 import yaml
+import random
 
 app = Flask(__name__)
 app.secret_key='secret1'
@@ -175,6 +176,74 @@ def create_card(deck_folder):
         yaml.dump(deck_data, file, allow_unicode=True, default_flow_style=False, sort_keys=False)
 
     flash('Successfully created new card.', 'success')
+    return redirect(url_for('display_deck', deck_folder=deck_folder))
+
+@app.route('/decks/<deck_folder>/study')
+def study_cards(deck_folder):
+    if 'study' not in session or session['study'].get('deck') != deck_folder:
+        data_dir = get_data_dir()
+        deck_path = get_deck_path(data_dir, deck_folder)
+        yaml_path = os.path.join(deck_path, 'cards.yml')
+
+        with open(yaml_path, 'r', encoding='utf-8') as file:
+            deck_data = yaml.safe_load(file)
+
+        random.shuffle(deck_data['cards'])
+
+        session['study'] = {
+            'deck': deck_folder,
+            'cards': deck_data['cards'],
+            'index': 0,
+            'side': 'front'
+        }
+
+    study = session['study']
+    card = study['cards'][study['index']]
+    side = study['side']
+
+    return render_template(
+                            'study.html',
+                            card=card,
+                            side=side,
+                            deck_folder=deck_folder,
+                            study_index = session['study']['index'],
+                            cards = session['study']['cards']
+                            )
+
+@app.route('/decks/<deck_folder>/study/flip')
+def flip_card(deck_folder):
+    if 'study' in session and session['study'].get('deck') == deck_folder:
+        session['study']['side'] = 'back' if session['study']['side'] == 'front' else 'front'
+        session.modified = True
+
+    return redirect(url_for('study_cards', deck_folder=deck_folder))
+
+@app.route('/decks/<deck_folder>/study/previous')
+def previous_card(deck_folder):
+    if 'study' in session and session['study'].get('deck') == deck_folder:
+        if session['study']['index'] > 0:
+            session['study']['index'] -= 1
+
+        session['study']['side'] = 'front'
+        session.modified = True
+
+    return redirect(url_for('study_cards', deck_folder=deck_folder))
+
+@app.route('/decks/<deck_folder>/study/next')
+def next_card(deck_folder):
+    if 'study' in session and session['study'].get('deck') == deck_folder:
+        if session['study']['index'] < len(session['study']['cards']):
+            session['study']['index'] += 1
+
+        session['study']['side'] = 'front'
+        session.modified = True
+
+    return redirect(url_for('study_cards', deck_folder=deck_folder))
+
+@app.route('/decks/<deck_folder>/study/end')
+def end_study(deck_folder):
+    session.pop('study', None)
+
     return redirect(url_for('display_deck', deck_folder=deck_folder))
 
 if __name__ == "__main__":

@@ -1,7 +1,11 @@
 {% extends 'layout.html' %}
 
 {% block content %}
-    <a href="{{ url_for('new_card', deck_folder=deck_folder) }}" class="button">New Card</a>
+    <div class="button-group">
+        <a href="{{ url_for('new_card', deck_folder=deck_folder) }}" class="button">New Card</a>
+        <a href="{{ url_for('study_cards', deck_folder=deck_folder) }}" class="button">Study</a>
+        <a href="{{ url_for('index') }}" class="button">View All Decks</a>
+    </div>
     <h2 id=deck-list-title>{{ deck_title | title }} Card List:</h2>
     <ul id='card-list'>
         {% for card in cards %}
