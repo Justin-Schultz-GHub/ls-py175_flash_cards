@@ -180,13 +180,17 @@ def create_card(deck_folder):
 
 @app.route('/decks/<deck_folder>/study')
 def study_cards(deck_folder):
-    if 'study' not in session or session['study'].get('deck') != deck_folder:
+    if 'study' not in session or session['study'].get('deck') != deck_folder or not session['study'].get('cards'):
         data_dir = get_data_dir()
         deck_path = get_deck_path(data_dir, deck_folder)
         yaml_path = os.path.join(deck_path, 'cards.yml')
 
         with open(yaml_path, 'r', encoding='utf-8') as file:
             deck_data = yaml.safe_load(file)
+
+        if not deck_data.get('cards'):
+            flash('This deck has no cards to study!', 'error')
+            return redirect(url_for('display_deck', deck_folder=deck_folder))
 
         random.shuffle(deck_data['cards'])
 
@@ -202,13 +206,13 @@ def study_cards(deck_folder):
     side = study['side']
 
     return render_template(
-                            'study.html',
-                            card=card,
-                            side=side,
-                            deck_folder=deck_folder,
-                            study_index = session['study']['index'],
-                            cards = session['study']['cards']
-                            )
+                        'study.html',
+                        card=card,
+                        side=side,
+                        deck_folder=deck_folder,
+                        study_index = session['study']['index'],
+                        cards = session['study']['cards']
+                        )
 
 @app.route('/decks/<deck_folder>/study/flip')
 def flip_card(deck_folder):
