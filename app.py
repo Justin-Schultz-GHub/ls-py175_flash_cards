@@ -47,6 +47,19 @@ def generate_next_folder_name():
     next_number = max(numbers) + 1 if numbers else 1
     return f'deck{next_number}'
 
+def generate_card_id(deck_folder):
+    yaml_path = get_yaml_path(deck_folder)
+
+    with open(yaml_path, 'r', encoding='utf-8') as f:
+        deck_data = yaml.safe_load(f)
+
+    existing_ids = set()
+
+    for card in deck_data['cards']:
+        existing_ids.add(int(card.get('id', 1)))
+
+    return max(existing_ids) + 1 if existing_ids else 1
+
 # Route hooks
 @app.route('/')
 def index():
@@ -66,11 +79,9 @@ def index():
 
 @app.route('/deck/<deck_folder>')
 def display_deck(deck_folder):
-    data_dir = get_data_dir()
-    deck_dir = os.path.join(data_dir, deck_folder)
-    deck_file = os.path.join(deck_dir, 'cards.yml')
+    yaml_path = get_yaml_path(deck_folder)
 
-    with open(deck_file, 'r', encoding='utf-8') as f:
+    with open(yaml_path, 'r', encoding='utf-8') as f:
         deck_data = yaml.safe_load(f)
 
     cards = deck_data.get('cards', [])
@@ -163,17 +174,22 @@ def create_card(deck_folder):
 
     card_front = request.form['front'].strip()
     card_back = request.form['back'].strip()
+    card_id = generate_card_id(deck_folder)
 
     if not card_front or not card_back:
         flash('Flashcards must have a front and back.', 'error')
         return redirect(url_for('new_card', deck_folder=deck_folder))
 
-    deck_data['cards'].append({'front': card_front, 'back': card_back})
+    deck_data['cards'].append({'front': card_front, 'back': card_back, 'id': card_id})
     with open(yaml_path, 'w', encoding='utf-8') as file:
         yaml.dump(deck_data, file, allow_unicode=True, default_flow_style=False, sort_keys=False)
 
     flash('Successfully created new card.', 'success')
     return redirect(url_for('display_deck', deck_folder=deck_folder))
+
+@app.route('/decks/<deck_folder>/<card>/delete', methods=['POST'])
+def delete_card():
+    pass
 
 @app.route('/decks/<deck_folder>/study')
 def study_cards(deck_folder):
