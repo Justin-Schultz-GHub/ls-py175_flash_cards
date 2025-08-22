@@ -21,7 +21,11 @@ class AppTest(unittest.TestCase):
 
         deck_data = {
             'name': deckname,
-            'cards': []
+            'cards': [
+                        {'front': 'Card 1 Front', 'back': 'Card 1 Back', 'id': '1'},
+                        {'front': 'Card 2 Front', 'back': 'Card 2 Back', 'id': '2'},
+                        {'front': 'Card 3 Front', 'back': 'Card 3 Back', 'id': '3'},
+                    ]
         }
 
         with open(yaml_path, 'w', encoding='utf-8') as file:
@@ -163,6 +167,13 @@ class AppTest(unittest.TestCase):
         self.assertIn('Test1', data)
         self.assertIn('Test2', data)
 
+        yaml_path = get_yaml_path(deck_folder)
+
+        with open(yaml_path, 'r', encoding='utf-8') as file:
+            deck_data = yaml.safe_load(file)
+
+        self.assertIn('id', deck_data['cards'][-1])
+
     def test_create_card_empty_inputs(self):
         deck_folder = 'deck3'
         yaml_path = get_yaml_path(deck_folder)
@@ -189,6 +200,18 @@ class AppTest(unittest.TestCase):
             new_deck_data = yaml.safe_load(file)
 
         self.assertEqual(original_deck_data, new_deck_data)
+
+    def test_delete_card(self):
+        deck_folder = 'deck2'
+        card_id = '2'
+        self.client.post(f'/decks/{deck_folder}/{card_id}/delete')
+        yaml_path = get_yaml_path(deck_folder)
+
+        with open(yaml_path, 'r', encoding='utf-8') as file:
+            deck_data = yaml.safe_load(file)
+
+        for card in deck_data['cards']:
+            self.assertNotEqual(card_id, card['id'])
 
     def tearDown(self):
         shutil.rmtree(self.data_path, ignore_errors=True)
