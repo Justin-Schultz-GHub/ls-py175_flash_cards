@@ -16,8 +16,8 @@ header {
 }
 
 .card {
-  height: 100px;
-  width: 350px;
+  height: 125px;
+  width: 400px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -198,6 +198,7 @@ input[type="submit"] {
   height: 300px;
   font-size: 1.4em;
   text-align: center;
+  padding: 20px;
 }
 
 
@@ -244,4 +245,16 @@ input[type="submit"] {
 
 .end-button:hover {
   background-color: #a71d2a;
+}
+
+.delete-card {
+  width: 24px;
+  height: 24px;
+  background: url('/static/images/icon_delete.png') no-repeat center center;
+  background-size: contain;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin: 20px;
+  float: right;
 }

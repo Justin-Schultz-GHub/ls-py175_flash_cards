@@ -187,9 +187,23 @@ def create_card(deck_folder):
     flash('Successfully created new card.', 'success')
     return redirect(url_for('display_deck', deck_folder=deck_folder))
 
-@app.route('/decks/<deck_folder>/<card>/delete', methods=['POST'])
-def delete_card():
-    pass
+@app.route('/decks/<deck_folder>/<card_id>/delete', methods=['POST'])
+def delete_card(deck_folder, card_id):
+    yaml_path = get_yaml_path(deck_folder)
+
+    with open(yaml_path, 'r', encoding='utf-8') as file:
+        deck_data = yaml.safe_load(file)
+
+    for card in deck_data['cards']:
+        if int(card_id) == int(card['id']):
+            deck_data['cards'].remove(card)
+            break
+
+    with open(yaml_path, 'w', encoding='utf-8') as file:
+        yaml.dump(deck_data, file, allow_unicode=True, default_flow_style=False, sort_keys=False)
+
+    flash('Successfully deleted card.', 'success')
+    return redirect(url_for('display_deck', deck_folder=deck_folder))
 
 @app.route('/decks/<deck_folder>/study')
 def study_cards(deck_folder):

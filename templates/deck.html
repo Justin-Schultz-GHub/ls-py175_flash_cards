@@ -12,6 +12,9 @@
             <li class="card">
                 <div class="card-front">{{ card.front | capitalize }}</div>
                 <div class="card-back">{{ card.back | capitalize }}</div>
+                <form action="{{ url_for('delete_card', deck_folder=deck_folder, card_id=card.id) }}" method="post">
+                    <button type="submit" class="delete-card"></button>
+                </form>
             </li>
         {% endfor %}
     </ul>
