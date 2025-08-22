@@ -2,7 +2,7 @@ import unittest
 import os
 import shutil
 import yaml
-from app import app, get_data_dir, get_deck_path, generate_next_folder_name, deck_exists
+from app import app, get_data_dir, get_deck_path, get_yaml_path, generate_next_folder_name, deck_exists
 
 class AppTest(unittest.TestCase):
     def setUp(self):
@@ -15,11 +15,9 @@ class AppTest(unittest.TestCase):
             self.create_deck(f'Test Deck {i}', self.data_path)
 
     def create_deck(self, deckname, data_path):
-        data_dir = get_data_dir()
-        folder_name = generate_next_folder_name(data_dir)
-        deck_path = get_deck_path(data_dir, folder_name)
-        os.makedirs(deck_path, exist_ok=True)
-        yaml_path = os.path.join(deck_path, 'cards.yml')
+        deck_folder = generate_next_folder_name()
+        os.makedirs(get_deck_path(deck_folder), exist_ok=True)
+        yaml_path = get_yaml_path(deck_folder)
 
         deck_data = {
             'name': deckname,
@@ -96,9 +94,7 @@ class AppTest(unittest.TestCase):
     def test_rename_deck_empty_name(self):
         deckname = ''
         deck_folder = 'deck3'
-        data_dir = get_data_dir()
-        deck_path = get_deck_path(data_dir, deck_folder)
-        yaml_path = os.path.join(deck_path, 'cards.yml')
+        yaml_path = get_yaml_path(deck_folder)
 
         with open(yaml_path, 'r', encoding='utf-8') as file:
             original_deck_data = yaml.safe_load(file)
@@ -143,8 +139,7 @@ class AppTest(unittest.TestCase):
         response = self.client.get(f'/decks/{deck_folder}/delete',
                                     follow_redirects=True)
         self.assertEqual(response.status_code, 405)
-        data_dir = get_data_dir()
-        folders = os.listdir(data_dir)
+        folders = os.listdir(get_data_dir())
         self.assertIn(deck_folder, folders)
 
     def test_display_new_card_page(self):
@@ -170,9 +165,7 @@ class AppTest(unittest.TestCase):
 
     def test_create_card_empty_inputs(self):
         deck_folder = 'deck3'
-        data_dir = get_data_dir()
-        deck_path = get_deck_path(data_dir, deck_folder)
-        yaml_path = os.path.join(deck_path, 'cards.yml')
+        yaml_path = get_yaml_path(deck_folder)
 
         with open(yaml_path, 'r', encoding='utf-8') as file:
             original_deck_data = yaml.safe_load(file)

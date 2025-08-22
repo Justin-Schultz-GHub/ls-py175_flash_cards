@@ -26,11 +26,16 @@ def get_data_dir():
 def deck_exists(path):
     return os.path.exists(path)
 
-def get_deck_path(data_dir, folder_name):
-    return os.path.join(data_dir, folder_name)
+def get_deck_path(deck_folder):
+    return os.path.join(get_data_dir(), deck_folder)
 
-def generate_next_folder_name(data_dir):
-    existing = os.listdir(data_dir)
+def get_yaml_path(deck_folder):
+    deck_path = get_deck_path(deck_folder)
+
+    return os.path.join(deck_path, 'cards.yml')
+
+def generate_next_folder_name():
+    existing = os.listdir(get_data_dir())
     pattern = re.compile(r'^deck(\d+)$')
     numbers = []
 
@@ -79,15 +84,15 @@ def new_deck():
 
 @app.route('/new/create', methods=['POST'])
 def create_deck():
-    data_dir = get_data_dir()
     deckname = request.form['deckname']
 
     if not deckname:
         flash('Deck name cannot be empty.', 'error')
         return redirect(url_for('new_deck'))
 
-    deck_folder = generate_next_folder_name(data_dir)
-    deck_path = get_deck_path(data_dir, deck_folder)
+    deck_folder = generate_next_folder_name()
+    deck_path = get_deck_path(deck_folder)
+    yaml_path = get_yaml_path(deck_folder)
     os.makedirs(deck_path, exist_ok=False)
 
     deck_data = {
@@ -95,7 +100,6 @@ def create_deck():
             'cards': []
         }
 
-    yaml_path = os.path.join(deck_path, 'cards.yml')
     with open(yaml_path, 'w', encoding='utf-8') as file:
         yaml.dump(deck_data, file, allow_unicode=True, default_flow_style=False, sort_keys=False)
 
@@ -104,9 +108,7 @@ def create_deck():
 
 @app.route('/decks/<deck_folder>/rename')
 def rename_deck(deck_folder):
-    data_dir = get_data_dir()
-    deck_path = get_deck_path(data_dir, deck_folder)
-    yaml_path = os.path.join(deck_path, 'cards.yml')
+    yaml_path = get_yaml_path(deck_folder)
 
     with open(yaml_path, 'r', encoding='utf-8') as file:
         deck_data = yaml.safe_load(file)
@@ -115,9 +117,7 @@ def rename_deck(deck_folder):
 
 @app.route('/decks/<deck_folder>', methods=['POST'])
 def save_deck(deck_folder):
-    data_dir = get_data_dir()
-    deck_path = get_deck_path(data_dir, deck_folder)
-    yaml_path = os.path.join(deck_path, 'cards.yml')
+    yaml_path = get_yaml_path(deck_folder)
 
     with open(yaml_path, 'r', encoding='utf-8') as file:
         deck_data = yaml.safe_load(file)
@@ -138,11 +138,10 @@ def save_deck(deck_folder):
 
 @app.route('/decks/<deck_folder>/delete', methods=['POST'])
 def delete_deck(deck_folder):
-    data_dir = get_data_dir()
-    folders = os.listdir(data_dir)
+    folders = os.listdir(get_data_dir())
 
     if deck_folder in folders:
-        deck_path = get_deck_path(data_dir, deck_folder)
+        deck_path = get_deck_path(deck_folder)
         shutil.rmtree(deck_path, ignore_errors=True)
 
         flash('Deck successfully deleted.', 'success')
@@ -157,9 +156,7 @@ def new_card(deck_folder):
 
 @app.route('/decks/<deck_folder>/new_card/create', methods=['POST'])
 def create_card(deck_folder):
-    data_dir = get_data_dir()
-    deck_path = get_deck_path(data_dir, deck_folder)
-    yaml_path = os.path.join(deck_path, 'cards.yml')
+    yaml_path = get_yaml_path(deck_folder)
 
     with open(yaml_path, 'r', encoding='utf-8') as file:
         deck_data = yaml.safe_load(file)
@@ -181,9 +178,7 @@ def create_card(deck_folder):
 @app.route('/decks/<deck_folder>/study')
 def study_cards(deck_folder):
     if 'study' not in session or session['study'].get('deck') != deck_folder or not session['study'].get('cards'):
-        data_dir = get_data_dir()
-        deck_path = get_deck_path(data_dir, deck_folder)
-        yaml_path = os.path.join(deck_path, 'cards.yml')
+        yaml_path = get_yaml_path(deck_folder)
 
         with open(yaml_path, 'r', encoding='utf-8') as file:
             deck_data = yaml.safe_load(file)
